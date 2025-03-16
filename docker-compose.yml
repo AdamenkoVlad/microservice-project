@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  # ActiveMQ брокер
+  activemq:
+    image: apache/activemq:6.0.0
+    ports:
+      - "61616:61616"  # Порт для JMS
+      - "8161:8161"     # Веб-консоль ActiveMQ
+    environment:
+      - ACTIVEMQ_ADMIN_LOGIN=admin
+      - ACTIVEMQ_ADMIN_PASSWORD=admin
+
+  # Client Service
+  client-service:
+    build: ./client-service
+    ports:
+      - "8080:8080"
+    depends_on:
+      - activemq
+    environment:
+      - SPRING_ACTIVEMQ_BROKER_URL=tcp://activemq:61616
+
+  # Name Service
+  name-service:
+    build: ./name-service
+    depends_on:
+      - activemq
+    environment:
+      - SPRING_ACTIVEMQ_BROKER_URL=tcp://activemq:61616
+
+  # Address Service
+  address-service:
+    build: ./address-service
+    depends_on:
+      - activemq
+    environment:
+      - SPRING_ACTIVEMQ_BROKER_URL=tcp://activemq:61616
+
+  # Contact Service
+  contact-service:
+    build: ./contact-service
+    depends_on:
+      - activemq
+    environment:
+      - SPRING_ACTIVEMQ_BROKER_URL=tcp://activemq:61616
+
+  # Database Service
+  database-service:
+    build: ./database-service
+    depends_on:
+      - activemq
+    environment:
+      - SPRING_ACTIVEMQ_BROKER_URL=tcp://activemq:61616
+      - SPRING_DATASOURCE_URL=jdbc:sqlite:/data/clientdb.sqlite
+    volumes:
+      - ./database-service/data:/data  # Зберігаємо базу даних SQLite на хостовій машині
